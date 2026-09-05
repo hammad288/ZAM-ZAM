@@ -1,0 +1,322 @@
+// ============================================================
+// ZAMZAM TOURS & TRAVELS — Prisma Schema
+// PostgreSQL + Prisma ORM
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// AUTH — Admin Users
+// ============================================================
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  role          Role      @default(ADMIN)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  SUPER_ADMIN
+}
+
+// ============================================================
+// HAJJ PACKAGES
+// ============================================================
+model HajjPackage {
+  id                    String    @id @default(cuid())
+  name                  String
+  slug                  String    @unique
+  category              HajjCategory @default(ECONOMY)
+  price                 Decimal   @db.Decimal(10, 2)
+  currency              String    @default("INR")
+  duration              Int       // total days
+  departureDate         DateTime?
+  returnDate            DateTime?
+  departureCity         String    @default("Mumbai")
+  airline               String?
+
+  // Makkah Accommodation
+  makkahHotel           String?
+  makkahHotelDistance   String?   // e.g. "300m from Masjid al-Haram"
+  makkahNights          Int?
+
+  // Madinah Accommodation
+  madinahHotel          String?
+  madinahHotelDistance  String?
+  madinahNights         Int?
+
+  // Package Details
+  description           String    @db.Text
+  inclusions            String[]  // array of strings
+  exclusions            String[]
+  mealsIncluded         Boolean   @default(false)
+  visaIncluded          Boolean   @default(true)
+  transportIncluded     Boolean   @default(true)
+  ziyaratIncluded       Boolean   @default(false)
+  laundryIncluded       Boolean   @default(false)
+  travelKitIncluded     Boolean   @default(false)
+  groupLeaderIncluded   Boolean   @default(false)
+
+  // Policy
+  cancellationPolicy    String?   @db.Text
+  terms                 String?   @db.Text
+
+  // Media
+  images                String[]  // array of image URLs
+
+  // Status
+  featured              Boolean   @default(false)
+  published             Boolean   @default(true)
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([published, featured])
+  @@map("hajj_packages")
+}
+
+enum HajjCategory {
+  ECONOMY
+  STANDARD
+  PREMIUM
+  VIP
+  EXECUTIVE
+}
+
+// ============================================================
+// UMRAH PACKAGES
+// ============================================================
+model UmrahPackage {
+  id                    String    @id @default(cuid())
+  name                  String
+  slug                  String    @unique
+  umrahType             UmrahType @default(STANDARD)
+  isRamzan              Boolean   @default(false)
+  isFamilyPackage       Boolean   @default(false)
+  price                 Decimal   @db.Decimal(10, 2)
+  currency              String    @default("INR")
+  duration              Int       // total days
+  departureDate         DateTime?
+  returnDate            DateTime?
+  departureCity         String    @default("Mumbai")
+  airline               String?
+
+  // Makkah Accommodation
+  makkahHotel           String?
+  makkahHotelDistance   String?
+  makkahNights          Int?
+
+  // Madinah Accommodation
+  madinahHotel          String?
+  madinahHotelDistance  String?
+  madinahNights         Int?
+
+  // Package Details
+  description           String    @db.Text
+  inclusions            String[]
+  exclusions            String[]
+  mealsIncluded         Boolean   @default(false)
+  visaIncluded          Boolean   @default(true)
+  transportIncluded     Boolean   @default(true)
+  ziyaratIncluded       Boolean   @default(false)
+  laundryIncluded       Boolean   @default(false)
+  travelKitIncluded     Boolean   @default(false)
+  groupLeaderIncluded   Boolean   @default(false)
+
+  // Policy
+  cancellationPolicy    String?   @db.Text
+  terms                 String?   @db.Text
+
+  // Media
+  images                String[]
+
+  // Status
+  featured              Boolean   @default(false)
+  published             Boolean   @default(true)
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([published, featured])
+  @@map("umrah_packages")
+}
+
+enum UmrahType {
+  ECONOMY
+  STANDARD
+  PREMIUM
+  VIP
+  EXECUTIVE
+  RAMZAN_SPECIAL
+  FAMILY
+}
+
+// ============================================================
+// HOTELS
+// ============================================================
+model Hotel {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  city        HotelCity
+  category    Int       @default(5) // star rating
+  description String    @db.Text
+  distance    String    // e.g. "200m from Masjid al-Haram"
+  address     String?
+  amenities   String[]
+  images      String[]
+  featured    Boolean   @default(false)
+  published   Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([city, published])
+  @@map("hotels")
+}
+
+enum HotelCity {
+  MAKKAH
+  MADINAH
+}
+
+// ============================================================
+// GALLERY
+// ============================================================
+model GalleryImage {
+  id        String          @id @default(cuid())
+  url       String
+  caption   String?
+  alt       String?
+  category  GalleryCategory @default(GENERAL)
+  sortOrder Int             @default(0)
+  published Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([published, category])
+  @@map("gallery_images")
+}
+
+enum GalleryCategory {
+  MAKKAH
+  MADINAH
+  HAJJ
+  UMRAH
+  ZIYARAT
+  GENERAL
+}
+
+// ============================================================
+// TESTIMONIALS
+// ============================================================
+model Testimonial {
+  id          String    @id @default(cuid())
+  name        String
+  designation String?   // e.g. "Hajj 2023"
+  city        String?
+  content     String    @db.Text
+  rating      Int       @default(5)
+  image       String?
+  published   Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("testimonials")
+}
+
+// ============================================================
+// FAQS
+// ============================================================
+model FAQ {
+  id        String      @id @default(cuid())
+  question  String
+  answer    String      @db.Text
+  category  FAQCategory @default(GENERAL)
+  sortOrder Int         @default(0)
+  published Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@map("faqs")
+}
+
+enum FAQCategory {
+  HAJJ
+  UMRAH
+  VISA
+  GENERAL
+  PAYMENT
+}
+
+// ============================================================
+// ENQUIRIES
+// ============================================================
+model Enquiry {
+  id              String        @id @default(cuid())
+  name            String
+  mobile          String
+  whatsapp        String?
+  email           String?
+  serviceType     ServiceType   @default(UMRAH)
+  packageName     String?
+  persons         Int           @default(1)
+  departureCity   String?
+  travelDate      String?       // flexible format
+  message         String?       @db.Text
+  status          EnquiryStatus @default(NEW)
+  adminNotes      String?       @db.Text
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("enquiries")
+}
+
+enum ServiceType {
+  HAJJ
+  UMRAH
+  VISA
+  HOTEL
+  OTHER
+}
+
+enum EnquiryStatus {
+  NEW
+  CONTACTED
+  FOLLOW_UP
+  CONFIRMED
+  CLOSED
+}
+
+// ============================================================
+// WEBSITE SETTINGS (key-value store)
+// ============================================================
+model WebsiteSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  label     String?  // human-readable label for admin UI
+  group     String?  // e.g. "contact", "social", "hero", "policy"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("website_settings")
+}
