@@ -27,6 +27,10 @@ export function AdminSidebar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
 
+  if (pathname === '/admin/login') {
+    return null
+  }
+
   const isActive = (item: typeof navItems[0]) => {
     if (item.exact) return pathname === item.href
     return pathname.startsWith(item.href)

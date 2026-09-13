@@ -2,14 +2,8 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { slugify } from '@/lib/utils'
-
-function parseListString(str: string): string[] {
-  return str
-    .split(/[\n,]/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-}
+import { slugify, parseListString } from '@/lib/utils'
+import { requireAdmin } from '@/lib/auth-guard'
 
 // ============================================================
 // HAJJ PACKAGES
@@ -29,9 +23,47 @@ export async function getAllHajjPackages() {
   return prisma.hajjPackage.findMany({ orderBy: { createdAt: 'desc' } })
 }
 
+async function generateUniqueHajjSlug(raw: string, excludeId?: string): Promise<string> {
+  let baseSlug = slugify(raw || '')
+  if (!baseSlug) baseSlug = 'hajj-package'
+  let slug = baseSlug
+  let counter = 1
+  while (true) {
+    const existing = await prisma.hajjPackage.findUnique({
+      where: { slug },
+      select: { id: true },
+    })
+    if (!existing || (excludeId && existing.id === excludeId)) {
+      return slug
+    }
+    slug = `${baseSlug}-${counter}`
+    counter++
+  }
+}
+
+async function generateUniqueUmrahSlug(raw: string, excludeId?: string): Promise<string> {
+  let baseSlug = slugify(raw || '')
+  if (!baseSlug) baseSlug = 'umrah-package'
+  let slug = baseSlug
+  let counter = 1
+  while (true) {
+    const existing = await prisma.umrahPackage.findUnique({
+      where: { slug },
+      select: { id: true },
+    })
+    if (!existing || (excludeId && existing.id === excludeId)) {
+      return slug
+    }
+    slug = `${baseSlug}-${counter}`
+    counter++
+  }
+}
+
 export async function createHajjPackage(formData: FormData) {
+  await requireAdmin()
   const name = formData.get('name') as string
-  const slug = (formData.get('slug') as string) || slugify(name)
+  const rawSlug = formData.get('slug') as string
+  const slug = await generateUniqueHajjSlug(rawSlug || name)
 
   const data = {
     name,
@@ -73,11 +105,14 @@ export async function createHajjPackage(formData: FormData) {
 }
 
 export async function updateHajjPackage(id: string, formData: FormData) {
+  await requireAdmin()
   const name = formData.get('name') as string
+  const rawSlug = formData.get('slug') as string
+  const slug = await generateUniqueHajjSlug(rawSlug || name, id)
 
   const data = {
     name,
-    slug: (formData.get('slug') as string) || slugify(name),
+    slug,
     category: (formData.get('category') as string) || 'ECONOMY',
     price: parseFloat(formData.get('price') as string) || 0,
     duration: parseInt(formData.get('duration') as string) || 0,
@@ -114,6 +149,7 @@ export async function updateHajjPackage(id: string, formData: FormData) {
 }
 
 export async function deleteHajjPackage(id: string) {
+  await requireAdmin()
   await prisma.hajjPackage.delete({ where: { id } })
   revalidatePath('/hajj')
   revalidatePath('/admin/hajj-packages')
@@ -139,10 +175,14 @@ export async function getAllUmrahPackages() {
 }
 
 export async function createUmrahPackage(formData: FormData) {
+  await requireAdmin()
   const name = formData.get('name') as string
+  const rawSlug = formData.get('slug') as string
+  const slug = await generateUniqueUmrahSlug(rawSlug || name)
+
   const data = {
     name,
-    slug: (formData.get('slug') as string) || slugify(name),
+    slug,
     umrahType: (formData.get('umrahType') as string) || 'STANDARD',
     isRamzan: formData.get('isRamzan') === 'true',
     isFamilyPackage: formData.get('isFamilyPackage') === 'true',
@@ -182,10 +222,14 @@ export async function createUmrahPackage(formData: FormData) {
 }
 
 export async function updateUmrahPackage(id: string, formData: FormData) {
+  await requireAdmin()
   const name = formData.get('name') as string
+  const rawSlug = formData.get('slug') as string
+  const slug = await generateUniqueUmrahSlug(rawSlug || name, id)
+
   const data = {
     name,
-    slug: (formData.get('slug') as string) || slugify(name),
+    slug,
     umrahType: (formData.get('umrahType') as string) || 'STANDARD',
     isRamzan: formData.get('isRamzan') === 'true',
     isFamilyPackage: formData.get('isFamilyPackage') === 'true',
@@ -224,6 +268,7 @@ export async function updateUmrahPackage(id: string, formData: FormData) {
 }
 
 export async function deleteUmrahPackage(id: string) {
+  await requireAdmin()
   await prisma.umrahPackage.delete({ where: { id } })
   revalidatePath('/umrah')
   revalidatePath('/admin/umrah-packages')

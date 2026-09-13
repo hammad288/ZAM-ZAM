@@ -1,8 +1,9 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { getAllHajjPackages, deleteHajjPackage } from '@/actions/packages'
-import { formatCurrency, formatShortDate } from '@/lib/utils'
-import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react'
+import { formatCurrency } from '@/lib/utils'
+import { Plus, Edit, Eye, EyeOff } from 'lucide-react'
+import { DeleteConfirmButton } from '@/components/admin/DeleteConfirmButton'
 
 export const metadata: Metadata = { title: 'Hajj Packages | Admin' }
 
@@ -81,14 +82,19 @@ export default async function AdminHajjPackagesPage() {
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
                         <Link href={`/admin/hajj-packages/${pkg.id}/edit`}
-                          className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors">
+                          className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors"
+                          title="Edit Package">
                           <Edit className="w-4 h-4" />
                         </Link>
                         <Link href={`/hajj/${pkg.slug}`} target="_blank"
-                          className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50 transition-colors">
+                          className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50 transition-colors"
+                          title="View on site">
                           <Eye className="w-4 h-4" />
                         </Link>
-                        <DeletePackageButton id={pkg.id} name={pkg.name} type="hajj" />
+                        <DeleteConfirmButton
+                          action={deleteHajjPackage.bind(null, pkg.id)}
+                          itemName={pkg.name}
+                        />
                       </div>
                     </td>
                   </tr>
@@ -99,24 +105,5 @@ export default async function AdminHajjPackagesPage() {
         )}
       </div>
     </div>
-  )
-}
-
-function DeletePackageButton({ id, name, type }: { id: string; name: string; type: string }) {
-  return (
-    <form action={async () => {
-      'use server'
-      if (type === 'hajj') await deleteHajjPackage(id)
-    }}>
-      <button
-        type="submit"
-        className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
-        onClick={(e) => {
-          if (!confirm(`Delete "${name}"? This cannot be undone.`)) e.preventDefault()
-        }}
-      >
-        <Trash2 className="w-4 h-4" />
-      </button>
-    </form>
   )
 }

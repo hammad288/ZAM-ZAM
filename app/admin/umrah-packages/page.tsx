@@ -2,7 +2,8 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { getAllUmrahPackages, deleteUmrahPackage } from '@/actions/packages'
 import { formatCurrency } from '@/lib/utils'
-import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react'
+import { Plus, Edit, Eye, EyeOff } from 'lucide-react'
+import { DeleteConfirmButton } from '@/components/admin/DeleteConfirmButton'
 
 export const metadata: Metadata = { title: 'Umrah Packages | Admin' }
 
@@ -75,9 +76,10 @@ export default async function AdminUmrahPackagesPage() {
                       <div className="flex items-center gap-2">
                         <Link href={`/admin/umrah-packages/${pkg.id}/edit`} className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors"><Edit className="w-4 h-4" /></Link>
                         <Link href={`/umrah/${pkg.slug}`} target="_blank" className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50 transition-colors"><Eye className="w-4 h-4" /></Link>
-                        <form action={async () => { 'use server'; await deleteUmrahPackage(pkg.id) }}>
-                          <button type="submit" className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                        </form>
+                        <DeleteConfirmButton
+                          action={deleteUmrahPackage.bind(null, pkg.id)}
+                          itemName={pkg.name}
+                        />
                       </div>
                     </td>
                   </tr>

@@ -84,3 +84,11 @@ export function truncateText(text: string, maxLength: number): string {
 export function getStarRating(rating: number): string {
   return '★'.repeat(rating) + '☆'.repeat(5 - rating)
 }
+
+export function parseListString(str: string): string[] {
+  if (!str) return []
+  return str
+    .split(/[\n,]/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+}

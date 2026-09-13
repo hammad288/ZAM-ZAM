@@ -1,7 +1,8 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getAllFAQs, createFAQ, deleteFAQ } from '@/actions/settings'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import { DeleteConfirmButton } from '@/components/admin/DeleteConfirmButton'
 
 export const metadata: Metadata = { title: 'FAQs | Admin' }
 
@@ -31,7 +32,7 @@ export default async function AdminFAQsPage() {
               </select></div>
             <div><label className="form-label">Sort Order</label><input name="sortOrder" type="number" className="form-input" defaultValue="0" /></div>
             <label className="flex items-center gap-2"><input type="checkbox" name="published" value="true" className="w-4 h-4 accent-emerald-600" defaultChecked /><span className="text-sm">Published</span></label>
-            <button type="submit" className="btn-primary w-full justify-center" style={{ background: 'linear-gradient(135deg, #022c22, #065f46)' }}>
+            <button type="submit" className="btn-primary w-full justify-center cursor-pointer" style={{ background: 'linear-gradient(135deg, #022c22, #065f46)' }}>
               <Plus className="w-4 h-4" />Add FAQ
             </button>
           </form>
@@ -50,9 +51,10 @@ export default async function AdminFAQsPage() {
                     <p className="text-xs text-gray-500 line-clamp-2">{f.answer}</p>
                     {!f.published && <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full mt-1 inline-block">Draft</span>}
                   </div>
-                  <form action={async () => { 'use server'; await deleteFAQ(f.id) }}>
-                    <button type="submit" className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"><Trash2 className="w-4 h-4" /></button>
-                  </form>
+                  <DeleteConfirmButton
+                    action={deleteFAQ.bind(null, f.id)}
+                    itemName={f.question}
+                  />
                 </div>
               </div>
             ))

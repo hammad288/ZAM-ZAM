@@ -9,7 +9,7 @@ export type GalleryCategory = 'MAKKAH' | 'MADINAH' | 'HAJJ' | 'UMRAH' | 'ZIYARAT
 export type FAQCategory = 'HAJJ' | 'UMRAH' | 'VISA' | 'GENERAL' | 'PAYMENT'
 export type ServiceType = 'HAJJ' | 'UMRAH' | 'VISA' | 'HOTEL' | 'OTHER'
 export type EnquiryStatus = 'NEW' | 'CONTACTED' | 'FOLLOW_UP' | 'CONFIRMED' | 'CLOSED'
-export type Role = 'ADMIN' | 'SUPER_ADMIN'
+export type Role = 'EDITOR' | 'ADMIN' | 'SUPER_ADMIN'
 
 export interface HajjPackage {
   id: string
@@ -113,6 +113,25 @@ export interface GalleryImage {
   category: GalleryCategory
   sortOrder: number
   published: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface VisaService {
+  id: string
+  title: string
+  slug: string
+  visaType: string
+  description: string
+  requirements: string[]
+  processingTime: string | null
+  price: any
+  currency: string
+  requiredDocuments: string[]
+  importantNotes: string | null
+  image: string | null
+  published: boolean
+  sortOrder: number
   createdAt: Date
   updatedAt: Date
 }

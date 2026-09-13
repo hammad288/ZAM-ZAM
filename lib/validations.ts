@@ -90,3 +90,31 @@ export const enquiryStatusSchema = z.object({
   status: z.enum(['NEW', 'CONTACTED', 'FOLLOW_UP', 'CONFIRMED', 'CLOSED']),
   adminNotes: z.string().optional(),
 })
+
+// Visa service
+export const visaServiceSchema = z.object({
+  title: z.string().min(3).max(200),
+  slug: z.string().min(3).max(200).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase with hyphens'),
+  visaType: z.string().min(2).max(100),
+  description: z.string().min(10),
+  requirements: z.string(), // newline-separated
+  processingTime: z.string().optional().or(z.literal('')),
+  price: z.coerce.number().min(0).optional().nullable(),
+  requiredDocuments: z.string(), // newline-separated
+  importantNotes: z.string().optional().or(z.literal('')),
+  published: z.coerce.boolean().default(true),
+  sortOrder: z.coerce.number().default(0),
+})
+
+export type VisaServiceInput = z.infer<typeof visaServiceSchema>
+
+// Admin user
+export const adminUserSchema = z.object({
+  email: z.string().email('Invalid email'),
+  name: z.string().min(2, 'Name too short').max(100),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  role: z.enum(['EDITOR', 'ADMIN', 'SUPER_ADMIN']),
+})
+
+export type AdminUserInput = z.infer<typeof adminUserSchema>
+

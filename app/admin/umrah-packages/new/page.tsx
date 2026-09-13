@@ -14,8 +14,8 @@ export default function NewUmrahPackagePage() {
       <form action={submitAction} className="space-y-8">
         <Section title="Basic Information">
           <Grid>
-            <Field label="Package Name *" name="name" required />
-            <Field label="URL Slug *" name="slug" required />
+            <Field label="Package Name *" name="name" placeholder="e.g. Diwali Umrah Special 17 Days" required />
+            <Field label="URL Slug (Optional)" name="slug" placeholder="Auto-generated if left empty" />
             <Field label="Umrah Type *" name="umrahType" type="select"
               options={['ECONOMY', 'STANDARD', 'PREMIUM', 'VIP', 'EXECUTIVE', 'RAMZAN_SPECIAL', 'FAMILY'].map(v => ({ value: v, label: v.replace('_', ' ') }))} />
             <Field label="Price (INR) *" name="price" type="number" required />
@@ -98,11 +98,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Grid({ children }: { children: React.ReactNode }) {
   return <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">{children}</div>
 }
-function Field({ label, name, type = 'text', required, defaultValue, options }: {
-  label: string; name: string; type?: string; required?: boolean; defaultValue?: string; options?: { value: string; label: string }[];
+function Field({ label, name, type = 'text', required, defaultValue, placeholder, options }: {
+  label: string; name: string; type?: string; required?: boolean; defaultValue?: string; placeholder?: string; options?: { value: string; label: string }[];
 }) {
   if (type === 'select' && options) {
     return <div><label className="form-label">{label}</label><select name={name} className="form-input">{options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
   }
-  return <div><label className="form-label">{label}</label><input name={name} type={type} className="form-input" required={required} defaultValue={defaultValue} /></div>
+  return <div><label className="form-label">{label}</label><input name={name} type={type} className="form-input" required={required} defaultValue={defaultValue} placeholder={placeholder} /></div>
 }

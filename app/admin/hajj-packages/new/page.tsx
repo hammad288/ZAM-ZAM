@@ -27,7 +27,7 @@ function PackageForm({ type, defaultValues }: { type: 'hajj' | 'umrah'; defaultV
       <FormSection title="Basic Information">
         <FormGrid>
           <FormField label="Package Name *" name="name" placeholder="e.g. Economy Hajj Package 2025" required defaultValue={String(defaultValues?.name ?? '')} />
-          <FormField label="URL Slug *" name="slug" placeholder="e.g. economy-hajj-2025" required defaultValue={String(defaultValues?.slug ?? '')} />
+          <FormField label="URL Slug (Optional)" name="slug" placeholder="Auto-generated if left empty" defaultValue={String(defaultValues?.slug ?? '')} />
           <FormField label="Category *" name="category" type="select" required defaultValue={String(defaultValues?.category ?? 'ECONOMY')}
             options={['ECONOMY', 'STANDARD', 'PREMIUM', 'VIP', 'EXECUTIVE'].map(v => ({ value: v, label: v }))} />
           <FormField label="Price (INR) *" name="price" type="number" placeholder="285000" required defaultValue={String(defaultValues?.price ?? '')} />

@@ -2,6 +2,7 @@
 // ZAMZAM TOURS — Settings Cache (server-side)
 // ============================================================
 
+import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 import { SettingsMap } from '@/types'
 
@@ -15,7 +16,7 @@ export const DEFAULT_SETTINGS: SettingsMap = {
   footer_copyright: '© 2026 ZAM ZAM Tours & Travels. All rights reserved.',
 }
 
-export async function getSettings(): Promise<SettingsMap> {
+export const getSettings = cache(async (): Promise<SettingsMap> => {
   try {
     const settings = await prisma.websiteSettings.findMany()
     const mapped = settings.reduce((acc, s) => {
@@ -26,13 +27,13 @@ export async function getSettings(): Promise<SettingsMap> {
   } catch {
     return DEFAULT_SETTINGS
   }
-}
+})
 
-export async function getSetting(key: string, fallback: string = ''): Promise<string> {
+export const getSetting = cache(async (key: string, fallback: string = ''): Promise<string> => {
   try {
     const setting = await prisma.websiteSettings.findUnique({ where: { key } })
     return setting?.value ?? DEFAULT_SETTINGS[key] ?? fallback
   } catch {
     return DEFAULT_SETTINGS[key] ?? fallback
   }
-}
+})

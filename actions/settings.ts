@@ -2,8 +2,11 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { slugify, parseListString } from '@/lib/utils'
+import { requireAdmin } from '@/lib/auth-guard'
 
 export async function updateSettings(settings: Record<string, string>) {
+  await requireAdmin()
   const updates = Object.entries(settings).map(([key, value]) =>
     prisma.websiteSettings.upsert({
       where: { key },
@@ -19,10 +22,35 @@ export async function updateSettings(settings: Record<string, string>) {
 // ============================================================
 // HOTELS
 // ============================================================
+async function generateUniqueHotelSlug(raw: string, excludeId?: string): Promise<string> {
+  let baseSlug = slugify(raw || '')
+  if (!baseSlug) baseSlug = 'hotel'
+  let slug = baseSlug
+  let counter = 1
+  while (true) {
+    const existing = await prisma.hotel.findUnique({
+      where: { slug },
+      select: { id: true },
+    })
+    if (!existing || (excludeId && existing.id === excludeId)) {
+      return slug
+    }
+    slug = `${baseSlug}-${counter}`
+    counter++
+  }
+}
+
+export async function getFeaturedHotels() {
+  return prisma.hotel.findMany({
+    where: { published: true, featured: true },
+    orderBy: [{ city: 'asc' }, { sortOrder: 'asc' }],
+  })
+}
+
 export async function getHotels(city?: 'MAKKAH' | 'MADINAH') {
   return prisma.hotel.findMany({
     where: { published: true, ...(city ? { city } : {}) },
-    orderBy: [{ featured: 'desc' }, { sortOrder: 'asc' }],
+    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
   })
 }
 
@@ -31,8 +59,10 @@ export async function getAllHotels() {
 }
 
 export async function createHotel(formData: FormData) {
+  await requireAdmin()
   const name = formData.get('name') as string
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  const rawSlug = formData.get('slug') as string
+  const slug = await generateUniqueHotelSlug(rawSlug || name)
   await prisma.hotel.create({
     data: {
       name,
@@ -42,7 +72,7 @@ export async function createHotel(formData: FormData) {
       description: (formData.get('description') as string) || '',
       distance: (formData.get('distance') as string) || '',
       address: (formData.get('address') as string) || null,
-      amenities: (formData.get('amenities') as string || '').split('\n').map(s => s.trim()).filter(Boolean),
+      amenities: parseListString((formData.get('amenities') as string) || ''),
       featured: formData.get('featured') === 'true',
       published: formData.get('published') !== 'false',
       sortOrder: parseInt(formData.get('sortOrder') as string) || 0,
@@ -54,16 +84,22 @@ export async function createHotel(formData: FormData) {
 }
 
 export async function updateHotel(id: string, formData: FormData) {
+  await requireAdmin()
+  const name = formData.get('name') as string
+  const rawSlug = formData.get('slug') as string
+  const slug = await generateUniqueHotelSlug(rawSlug || name, id)
+
   await prisma.hotel.update({
     where: { id },
     data: {
-      name: formData.get('name') as string,
+      name,
+      slug,
       city: (formData.get('city') as 'MAKKAH' | 'MADINAH') || 'MAKKAH',
       category: parseInt(formData.get('category') as string) || 5,
       description: (formData.get('description') as string) || '',
       distance: (formData.get('distance') as string) || '',
       address: (formData.get('address') as string) || null,
-      amenities: (formData.get('amenities') as string || '').split('\n').map(s => s.trim()).filter(Boolean),
+      amenities: parseListString((formData.get('amenities') as string) || ''),
       featured: formData.get('featured') === 'true',
       published: formData.get('published') !== 'false',
       sortOrder: parseInt(formData.get('sortOrder') as string) || 0,
@@ -75,6 +111,7 @@ export async function updateHotel(id: string, formData: FormData) {
 }
 
 export async function deleteHotel(id: string) {
+  await requireAdmin()
   await prisma.hotel.delete({ where: { id } })
   revalidatePath('/hotels')
   revalidatePath('/admin/hotels')
@@ -96,6 +133,7 @@ export async function getAllTestimonials() {
 }
 
 export async function createTestimonial(formData: FormData) {
+  await requireAdmin()
   await prisma.testimonial.create({
     data: {
       name: formData.get('name') as string,
@@ -113,6 +151,7 @@ export async function createTestimonial(formData: FormData) {
 }
 
 export async function updateTestimonial(id: string, formData: FormData) {
+  await requireAdmin()
   await prisma.testimonial.update({
     where: { id },
     data: {
@@ -131,6 +170,7 @@ export async function updateTestimonial(id: string, formData: FormData) {
 }
 
 export async function deleteTestimonial(id: string) {
+  await requireAdmin()
   await prisma.testimonial.delete({ where: { id } })
   revalidatePath('/')
   revalidatePath('/admin/testimonials')
@@ -152,6 +192,7 @@ export async function getAllFAQs() {
 }
 
 export async function createFAQ(formData: FormData) {
+  await requireAdmin()
   await prisma.fAQ.create({
     data: {
       question: formData.get('question') as string,
@@ -167,6 +208,7 @@ export async function createFAQ(formData: FormData) {
 }
 
 export async function updateFAQ(id: string, formData: FormData) {
+  await requireAdmin()
   await prisma.fAQ.update({
     where: { id },
     data: {
@@ -183,6 +225,7 @@ export async function updateFAQ(id: string, formData: FormData) {
 }
 
 export async function deleteFAQ(id: string) {
+  await requireAdmin()
   await prisma.fAQ.delete({ where: { id } })
   revalidatePath('/')
   revalidatePath('/admin/faqs')
@@ -204,6 +247,7 @@ export async function getAllGalleryImages() {
 }
 
 export async function createGalleryImage(formData: FormData) {
+  await requireAdmin()
   await prisma.galleryImage.create({
     data: {
       url: formData.get('url') as string,
@@ -220,6 +264,7 @@ export async function createGalleryImage(formData: FormData) {
 }
 
 export async function deleteGalleryImage(id: string) {
+  await requireAdmin()
   await prisma.galleryImage.delete({ where: { id } })
   revalidatePath('/gallery')
   revalidatePath('/admin/gallery')

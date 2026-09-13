@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { enquirySchema, EnquiryInput } from '@/lib/validations'
 import { revalidatePath } from 'next/cache'
+import { requireAdmin } from '@/lib/auth-guard'
 
 export async function createEnquiry(data: EnquiryInput) {
   const validated = enquirySchema.safeParse(data)
@@ -36,6 +37,7 @@ export async function createEnquiry(data: EnquiryInput) {
 }
 
 export async function updateEnquiryStatus(id: string, status: string, adminNotes?: string) {
+  await requireAdmin()
   await prisma.enquiry.update({
     where: { id },
     data: {
@@ -49,6 +51,7 @@ export async function updateEnquiryStatus(id: string, status: string, adminNotes
 }
 
 export async function getEnquiries(status?: string) {
+  await requireAdmin()
   return prisma.enquiry.findMany({
     where: status ? { status: status as 'NEW' | 'CONTACTED' | 'FOLLOW_UP' | 'CONFIRMED' | 'CLOSED' } : undefined,
     orderBy: { createdAt: 'desc' },

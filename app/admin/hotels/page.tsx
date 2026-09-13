@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getAllHotels, createHotel, deleteHotel } from '@/actions/settings'
-import { Plus, Edit, Trash2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import { DeleteConfirmButton } from '@/components/admin/DeleteConfirmButton'
 
 export const metadata: Metadata = { title: 'Hotels | Admin' }
 
@@ -38,7 +38,7 @@ export default async function AdminHotelsPage() {
               <label className="flex items-center gap-2"><input type="checkbox" name="featured" value="true" className="w-4 h-4 accent-emerald-600" /><span className="text-sm">Featured</span></label>
               <label className="flex items-center gap-2"><input type="checkbox" name="published" value="true" className="w-4 h-4 accent-emerald-600" defaultChecked /><span className="text-sm">Published</span></label>
             </div>
-            <button type="submit" className="btn-primary w-full justify-center" style={{ background: 'linear-gradient(135deg, #022c22, #065f46)' }}>
+            <button type="submit" className="btn-primary w-full justify-center cursor-pointer" style={{ background: 'linear-gradient(135deg, #022c22, #065f46)' }}>
               <Plus className="w-4 h-4" />Add Hotel
             </button>
           </form>
@@ -56,9 +56,10 @@ export default async function AdminHotelsPage() {
                   <p className="font-semibold text-gray-800">{hotel.name}</p>
                   <p className="text-xs text-gray-500">{hotel.city} · {'⭐'.repeat(hotel.category)} · {hotel.distance}</p>
                 </div>
-                <form action={async () => { 'use server'; await deleteHotel(hotel.id) }}>
-                  <button type="submit" className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
-                </form>
+                <DeleteConfirmButton
+                  action={deleteHotel.bind(null, hotel.id)}
+                  itemName={hotel.name}
+                />
               </div>
             ))
           )}

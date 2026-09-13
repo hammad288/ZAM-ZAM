@@ -1,7 +1,8 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getAllGalleryImages, createGalleryImage, deleteGalleryImage } from '@/actions/settings'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import { DeleteConfirmButton } from '@/components/admin/DeleteConfirmButton'
 
 export const metadata: Metadata = { title: 'Gallery | Admin' }
 
@@ -33,7 +34,7 @@ export default async function AdminGalleryPage() {
               </select></div>
             <div><label className="form-label">Sort Order</label><input name="sortOrder" type="number" className="form-input" defaultValue="0" /></div>
             <label className="flex items-center gap-2"><input type="checkbox" name="published" value="true" className="w-4 h-4 accent-emerald-600" defaultChecked /><span className="text-sm">Published</span></label>
-            <button type="submit" className="btn-primary w-full justify-center" style={{ background: 'linear-gradient(135deg, #022c22, #065f46)' }}>
+            <button type="submit" className="btn-primary w-full justify-center cursor-pointer" style={{ background: 'linear-gradient(135deg, #022c22, #065f46)' }}>
               <Plus className="w-4 h-4" />Add Image
             </button>
           </form>
@@ -52,10 +53,13 @@ export default async function AdminGalleryPage() {
                     <p className="text-xs text-gray-600 truncate">{img.caption || '—'}</p>
                     <p className="text-xs text-emerald-600">{img.category}</p>
                   </div>
-                  <form action={async () => { 'use server'; await deleteGalleryImage(img.id) }}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button type="submit" className="bg-red-500 text-white p-1 rounded-lg"><Trash2 className="w-3 h-3" /></button>
-                  </form>
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <DeleteConfirmButton
+                      action={deleteGalleryImage.bind(null, img.id)}
+                      itemName={img.caption || 'this image'}
+                      className="bg-red-500 hover:bg-red-600 text-white p-1 rounded-lg transition-colors cursor-pointer"
+                    />
+                  </div>
                 </div>
               ))}
             </div>

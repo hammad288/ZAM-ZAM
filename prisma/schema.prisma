@@ -8,8 +8,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ============================================================
@@ -21,6 +22,7 @@ model User {
   name          String?
   password      String
   role          Role      @default(ADMIN)
+  active        Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -28,6 +30,7 @@ model User {
 }
 
 enum Role {
+  EDITOR
   ADMIN
   SUPER_ADMIN
 }
@@ -220,6 +223,31 @@ enum GalleryCategory {
   UMRAH
   ZIYARAT
   GENERAL
+}
+
+// ============================================================
+// VISA SERVICES
+// ============================================================
+model VisaService {
+  id                String    @id @default(cuid())
+  title             String
+  slug              String    @unique
+  visaType          String    // e.g. "Hajj Visa", "Umrah Visa", "Tourist Visa"
+  description       String    @db.Text
+  requirements      String[]
+  processingTime    String?   // e.g. "7-10 business days"
+  price             Decimal?  @db.Decimal(10, 2)
+  currency          String    @default("INR")
+  requiredDocuments String[]
+  importantNotes    String?   @db.Text
+  image             String?
+  published         Boolean   @default(true)
+  sortOrder         Int       @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([published])
+  @@map("visa_services")
 }
 
 // ============================================================
